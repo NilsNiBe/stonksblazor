@@ -1,39 +1,37 @@
 ﻿@using MudBlazor
-<MudAutocomplete T="string" Label="Wertpapier" @bind-Value="value1" SearchFunc="@Search1"
-                 ResetValueOnEmptyText="@resetValueOnEmptyText" CoerceText="@coerceText" CoerceValue="@coerceValue"
-                 Variant="Variant.Outlined" />
+@using StonksBlazor.Services
+<MudAutocomplete T="SymbolName" Label="Wertpapier" Value="inputSymbol" SearchFunc="@Search"
+                 ResetValueOnEmptyText="true"
+                 Variant="Variant.Outlined"
+                 ToStringFunc="@(e => $"{e.symbol} -  {e.longname}" )"
+                 Clearable="true"
+                 ValueChanged="OnValueChanged"
+                 />
 
 @code {
-  private bool resetValueOnEmptyText;
-  private bool coerceText;
-  private bool coerceValue;
-  private string? value1;
-  private string[] states =
-    {
-        "Alabama", "Alaska", "American Samoa", "Arizona",
-        "Arkansas", "California", "Colorado", "Connecticut",
-        "Delaware", "District of Columbia", "Federated States of Micronesia",
-        "Florida", "Georgia", "Guam", "Hawaii", "Idaho",
-        "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
-        "Louisiana", "Maine", "Marshall Islands", "Maryland",
-        "Massachusetts", "Michigan", "Minnesota", "Mississippi",
-        "Missouri", "Montana", "Nebraska", "Nevada",
-        "New Hampshire", "New Jersey", "New Mexico", "New York",
-        "North Carolina", "North Dakota", "Northern Mariana Islands", "Ohio",
-        "Oklahoma", "Oregon", "Palau", "Pennsylvania", "Puerto Rico",
-        "Rhode Island", "South Carolina", "South Dakota", "Tennessee",
-        "Texas", "Utah", "Vermont", "Virgin Island", "Virginia",
-        "Washington", "West Virginia", "Wisconsin", "Wyoming",
-    };
+  [Parameter]
+  public Action<string>? OnSymbolChanged { get; set; }
 
-  private async Task<IEnumerable<string>> Search1(string value)
+
+  private SymbolName? inputSymbol;
+  private record SymbolName(string symbol, string longname);
+
+  private async Task<IEnumerable<SymbolName>> Search(string value)
   {
-    // In real life use an asynchronous function for fetching data from an api.
-    await Task.Delay(5);
+    if (string.IsNullOrWhiteSpace(value))
+    {
+      return new SymbolName[] { };
+    }
+    var res = await YahooV8Service.Instance.Query2FinanceYahooV8Search(value);
+    return res.Quotes.Select(x => new SymbolName(x.Symbol, x.Longname));
+  }  
 
-    // if text is null or empty, show complete list
-    if (string.IsNullOrEmpty(value))
-      return states;
-    return states.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+  private void OnValueChanged(SymbolName symbolName)
+  {
+    inputSymbol = symbolName;
+    if (OnSymbolChanged != null)
+    {
+      OnSymbolChanged(symbolName.symbol);
+    }
   }
 }

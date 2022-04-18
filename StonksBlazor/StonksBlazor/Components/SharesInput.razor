@@ -1,17 +1,18 @@
 ﻿@using MudBlazor
+@using StonksBlazor.Services
 
 <MudGrid style="background-color: white; border-radius: 5px; box-shadow: 1px 1px 1px gray; align-items: center">
   <MudItem lg="2" md="2" sm="3" xs="12">
-    <MudDatePicker DateFormat="dd.MM.yyy" Label="Kauftag" InputVariant="Variant.Outlined" @bind-Date="selectedDate" />
+    <MudDatePicker DateFormat="dd.MM.yyy" Label="Kauftag" InputVariant="Variant.Outlined" Date="selectedDate" DateChanged="OnDateChanged" />
   </MudItem>
   <MudItem lg="2" md="2" sm="3" xs="12">
     <MudTimePicker TimeFormat="HH:mm" Label="Kaufzeit" InputVariant="Variant.Outlined" @bind-Time="selectedTime" />
   </MudItem>
   <MudItem lg="3" md="3" sm="4" xs="12">
-    <SharesSeachInput />
+    <SharesSeachInput OnSymbolChanged="OnSymbolChanged" />
   </MudItem>
   <MudItem lg="2" md="2" sm="2" xs="12">
-    <MudTextField Variant="Variant.Outlined" Label="Preis" @bind-Value="selectedPrice" InputType="InputType.Number" />
+    <MudTextField Variant="Variant.Outlined" Label="Preis" Value="selectedPrice" InputType="InputType.Number" />
   </MudItem>
   <MudItem lg="1" md="1" sm="2" xs="12">
     <MudTextField Variant="Variant.Outlined" Label="Anzahl" @bind-Value="selectedAmount" InputType="InputType.Number" />
@@ -28,16 +29,63 @@
 
   DateTime? selectedDate = DateTime.Today;
   TimeSpan? selectedTime = new TimeSpan(12, 00, 00);
-  string? selectedShare = null;
+  string? selectedSymbol = null;
   double? selectedPrice = null;
   int selectedAmount = 1;
 
+  private DateTimeOffset GetCombinedDate(DateTime date, TimeSpan timespan) =>  new DateTimeOffset(date
+    .AddHours(selectedTime!.Value.Hours).AddMinutes(timespan.Minutes));
+
+  private async void OnDateChanged(DateTime? date)
+  {
+    if (date.HasValue && selectedSymbol != null)
+    {
+      selectedDate = date.Value;
+      await SetSelectedShare(selectedSymbol, new DateTimeOffset(date.Value));
+    }
+    
+  }
+
+  private async void OnSymbolChanged(string symbol)
+  {
+    if (selectedDate.HasValue && selectedTime.HasValue)
+    {
+      await SetSelectedShare(symbol, GetCombinedDate(selectedDate.Value, selectedTime.Value));
+    }
+  }
+
+  private async Task SetSelectedShare(string symbol, DateTimeOffset date)
+  {
+    selectedSymbol = symbol;
+    if (string.IsNullOrEmpty(symbol))
+    {
+      selectedPrice = null;
+    } else
+    {
+      var startDate = date.AddDays(-5);
+      var res = await YahooV8Service.Instance.Query2FinanceYahooV8Chart(
+        symbol, "1d", startDate.ToUnixTimeSeconds(), date.ToUnixTimeSeconds());
+      var result = res?.Chart.Result[0];
+      if (result != null)
+      {
+        var quotes = result.Indicators.Quote;
+        if (!quotes.Any() || quotes[0] == null)
+        {
+          selectedPrice = Math.Round(result.Meta.RegularMarketTime * 100) / 100;
+        } else
+        {
+          selectedPrice = Math.Round(quotes[0].Close.Last() * 100) / 100;
+        }
+      }
+
+    }
+  }
 
   private void OnAddClicked()
   {
     if (selectedDate.HasValue
         && selectedTime.HasValue
-        && string.IsNullOrWhiteSpace(selectedShare)
+        && !string.IsNullOrWhiteSpace(selectedSymbol)
         && selectedPrice.HasValue
         && selectedAmount > 0
         && ReturnShare != null)
@@ -46,7 +94,7 @@
         selectedDate.Value
           .AddHours(selectedTime.Value.Hours)
           .AddMinutes(selectedTime.Value.Minutes));
-      ReturnShare(date, selectedShare!, selectedAmount, selectedPrice.Value);
+      ReturnShare(date, selectedSymbol!, selectedAmount, selectedPrice.Value);
     }
   }
 }
