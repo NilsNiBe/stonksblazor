@@ -1,7 +1,7 @@
 ﻿namespace StonksBlazor.Services
 {
-    public class SharesService
-    {
+  public class SharesService
+  {
     private static readonly Lazy<SharesService> lazy =
       new(() => new SharesService());
     public static SharesService Instance => lazy.Value;

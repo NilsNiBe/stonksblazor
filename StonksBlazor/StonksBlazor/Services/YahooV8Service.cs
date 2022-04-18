@@ -68,7 +68,7 @@ namespace StonksBlazor.Services
 
       if (response.Content?.Headers?.ContentType?.MediaType == "application/json")
       {
-        var res = await response.Content.ReadFromJsonAsync<T>();        
+        var res = await response.Content.ReadFromJsonAsync<T>();
         if (res == null)
         {
           throw new Exception("Empty Response");

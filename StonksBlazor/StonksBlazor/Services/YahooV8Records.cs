@@ -14,7 +14,7 @@
     double Gmtoffset
   );
 
-  public record Post  (
+  public record Post(
     string Timezone,
     double Start,
     double End,

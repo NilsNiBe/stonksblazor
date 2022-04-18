@@ -1,7 +1,7 @@
 ﻿@using MudBlazor;
 @using StonksBlazor.Models
 
-<MudTable Items="@Shares" Style="margin-top: 20px" RowStyle="background-color: #cfe8fc">
+<MudTable Items="@UiShares" Style="margin-top: 20px" RowStyle="background-color: #cfe8fc">
     <HeaderContent >
         <MudTh></MudTh>
         <MudTh>Aktie</MudTh>
@@ -36,19 +36,24 @@
 </MudTable>
 
 @code {
+    [Parameter]
+    public List<Share>? Shares { get; set; }
+
     private record UiShare(Share Share, bool ShowPurchase);
 
-    private List<UiShare> Shares  = new List<UiShare> { 
-        new UiShare(new Share("msft", new List<Purchase> { 
-            new Purchase("sdf", 1650191240, 1)}, 44), true),
-        new UiShare(new Share("google", new List<Purchase> { 
-            new Purchase("qwer", 1650191240, 1)}, 44), true),
-    };   
+    private List<UiShare>? UiShares => Shares?.Select(x => new UiShare(x, false))?.ToList();
+
+    //new List<UiShare> { 
+    //    new UiShare(new Share("msft", new List<Purchase> { 
+    //        new Purchase("sdf", 1650191240, 1)}, 44), true),
+    //    new UiShare(new Share("google", new List<Purchase> { 
+    //        new Purchase("qwer", 1650191240, 1)}, 44), true),
+    //};   
 
     private void OnExpandClicked(string symbol)
     {
-        var share = Shares.First(x => x.Share.Symbol == symbol);
-        var index = Shares.IndexOf(share);
-        Shares[index] = share with {ShowPurchase = !share.ShowPurchase };
+        var share = UiShares.First(x => x.Share.Symbol == symbol);
+        var index = UiShares.IndexOf(share);
+        UiShares[index] = share with {ShowPurchase = !share.ShowPurchase };
     }
 }

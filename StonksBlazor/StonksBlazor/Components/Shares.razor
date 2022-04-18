@@ -5,7 +5,7 @@
 
 <section style="margin: 20px">
     <div Style="background-color: #87cefa; display: center; padding: 20px; border-radius: 5px" >        
-        <SharesInput />        
+        <SharesInput ReturnShare="AddShare" />        
         <SharesTable />        
     </div>
 </section>
@@ -13,24 +13,47 @@
 @code {
     private List<Share>? ShareList;
 
-    private long GetMinTimestamp(Share share)
+    private long GetMinTimestamp(Share share) => share.Purchases.Min(x => x.Timestamp);
+
+    private async Task AddPurchase(DateTimeOffset date, string symbol, int amount)
     {
-        return (long) share.Purchases.Min(x => x.Timestamp);
+        var foundShare = ShareList?.FirstOrDefault(x => x.Symbol == symbol);
+        if (foundShare != null)
+        {
+            var minTimestamp = GetMinTimestamp(foundShare);
+            if (minTimestamp > date.ToUnixTimeMilliseconds())
+            {
+                foundShare = foundShare with
+                    {
+                      ChartResult = await SharesService.Instance.GetChartResultFromApi(
+                        foundShare.Symbol, date.ToUnixTimeMilliseconds())
+                    };
+            }
+        }
     }
+
+    private async Task AddShare(DateTimeOffset date, string symbol, int amount, double price)
+    {
+        var res = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary(symbol);
+        if (res.QuoteSummary.Result.Any() )
+        {
+            
+        }
+    }    
 
     protected override async Task OnInitializedAsync()
     {
-        ShareList = await localStore.GetItemAsync<List<Share>>("stonksblazor");
+        var shares = await localStore.GetItemAsync<List<Share>>("stonksblazor");
 
         // await localStore.SetItemAsync<List<Share>>("stonksblazor", ShareList);
-        var shareTasks =  ShareList.Select(x =>
-          (Share: x, Task: Task.Run(() => SharesService.Instance.GetChartResultFromApi(x.Symbol, GetMinTimestamp(x)))));
-        Task.WaitAll(shareTasks.Select(x => x.Task).ToArray());
-        ShareList = shareTasks.Select(x => x.Share with {ChartResult = x.Task.Result }).ToList();
+        var shareTasks =  shares.Select(x =>
+          Task.Run(() => SharesService.Instance.GetChartResultFromApi(x.Symbol, GetMinTimestamp(x))));
+        Task.WaitAll(shareTasks.ToArray());
+        ShareList = shareTasks.Select((x, i) => shares[i] with {ChartResult = x.Result }).ToList();
 
 
-        var res = await YahooV8Service.Instance.Query2FinanceYahooV8Chart("MSFT", "1d", 1649601542, 1649601580);
-        var foo = await YahooV8Service.Instance.Query2FinanceYahooV8Search("MSFT");
-        var bar = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary("MSFT");
+        //var res = await YahooV8Service.Instance.Query2FinanceYahooV8Chart("MSFT", "1d", 1649601542, 1649601580);
+        //var foo = await YahooV8Service.Instance.Query2FinanceYahooV8Search("MSFT");
+        //var bar = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary("MSFT");
     }
 }

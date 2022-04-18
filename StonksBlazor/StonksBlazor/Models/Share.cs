@@ -2,5 +2,5 @@
 {
   public record Share(string Symbol, List<Purchase> Purchases, object ChartResult);
 
-  public record Purchase(string Id, double Timestamp, int Amount);
+  public record Purchase(string Id, long Timestamp, int Amount);
 }
