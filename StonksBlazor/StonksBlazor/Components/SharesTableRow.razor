@@ -1,5 +1,35 @@
-﻿<h3>SharesTableRow</h3>
-<SharesChart/>
-@code {
+﻿@using MudBlazor
+@using StonksBlazor.Models
 
+<MudTable Items="@Purchases" Style="margin-top: 20px" OnRowClick="OnDeleteClicked" T="Purchase">
+    <HeaderContent >
+        <MudTh>Datum</MudTh>
+        <MudTh>Menge</MudTh>
+        <MudTh>Gesamtwert</MudTh>        
+        <MudTh>(gesamt) G/V</MudTh>
+        <MudTh>Kaufpreis</MudTh>        
+        <MudTh/>
+    </HeaderContent>
+     <RowTemplate>        
+        <MudTd>@context.Id</MudTd>
+        <MudTd>@context.Amount</MudTd>
+        <MudTd></MudTd>
+        <MudTd></MudTd>
+        <MudTd></MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                 />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+<SharesChart/>
+
+@code {
+    [Parameter]
+    public List<Purchase>? Purchases { get; set; }
+
+    private void OnDeleteClicked(TableRowClickEventArgs<Purchase> tableRowClickEventArgs)
+    {
+        
+    }
 }

@@ -11,26 +11,44 @@
         <MudTh>Aktienwert</MudTh>
         <MudTh >(aktuell) G/V</MudTh>
     </HeaderContent>
-    <RowTemplate >
-        <MudTr>
-        <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" @onclick="OnExpandClicked" ></MudIconButton>
-        <MudTd  DataLabel="Aktie">@context.Symbol</MudTd>
-        <MudTd DataLabel="Menge">@context.Purchases.Sum(x => x.Amount)</MudTd>
-        <MudTd DataLabel="Menge"></MudTd>
-        <MudTd DataLabel="Menge"></MudTd>
-        <MudTd DataLabel="Menge"></MudTd>
-        <MudTd DataLabel="Menge"></MudTd> 
-        </MudTr>
+    <RowTemplate >   
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" 
+                @onclick="@(() => OnExpandClicked(context.Share.Symbol))"/>
+        </MudTd>
+        <MudTd>@context.Share.Symbol</MudTd>
+        <MudTd>@context.Share.Purchases.Sum(x => x.Amount)</MudTd>
+        <MudTd></MudTd>
+        <MudTd></MudTd>
+        <MudTd></MudTd>
+        <MudTd></MudTd>       
     </RowTemplate>
+    <ChildRowContent>
+        @if (context.ShowPurchase)
+        {
+            <MudTr>
+                <td colspan="7">
+                    <SharesTableRow Purchases="context.Share.Purchases"/>
+                </td>
+            </MudTr>
+        }
+    </ChildRowContent>
 </MudTable>
 
-
-<SharesTableRow/>
 @code {
-    private List<Share> Shares = new List<Share> { new Share("msft", new List<Purchase> { new Purchase("sdf", 1650191240, 1)}, 44) };
+    private record UiShare(Share Share, bool ShowPurchase);
 
-    private void OnExpandClicked()
+    private List<UiShare> Shares  = new List<UiShare> { 
+        new UiShare(new Share("msft", new List<Purchase> { 
+            new Purchase("sdf", 1650191240, 1)}, 44), true),
+        new UiShare(new Share("google", new List<Purchase> { 
+            new Purchase("qwer", 1650191240, 1)}, 44), true),
+    };   
+
+    private void OnExpandClicked(string symbol)
     {
-        
+        var share = Shares.First(x => x.Share.Symbol == symbol);
+        var index = Shares.IndexOf(share);
+        Shares[index] = share with {ShowPurchase = !share.ShowPurchase };
     }
 }

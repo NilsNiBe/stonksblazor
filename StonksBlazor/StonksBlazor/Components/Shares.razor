@@ -1,4 +1,7 @@
 ﻿@using MudBlazor;
+@using StonksBlazor.Models
+@using StonksBlazor.Services
+@inject Blazored.LocalStorage.ILocalStorageService localStore
 
 <section style="margin: 20px">
     <div Style="background-color: #87cefa; display: center; padding: 20px; border-radius: 5px" >        
@@ -8,5 +11,26 @@
 </section>
 
 @code {
-    
+    private List<Share>? ShareList;
+
+    private long GetMinTimestamp(Share share)
+    {
+        return (long) share.Purchases.Min(x => x.Timestamp);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ShareList = await localStore.GetItemAsync<List<Share>>("stonksblazor");
+
+        // await localStore.SetItemAsync<List<Share>>("stonksblazor", ShareList);
+        var shareTasks =  ShareList.Select(x =>
+          (Share: x, Task: Task.Run(() => SharesService.Instance.GetChartResultFromApi(x.Symbol, GetMinTimestamp(x)))));
+        Task.WaitAll(shareTasks.Select(x => x.Task).ToArray());
+        ShareList = shareTasks.Select(x => x.Share with {ChartResult = x.Task.Result }).ToList();
+
+
+        var res = await YahooV8Service.Instance.Query2FinanceYahooV8Chart("MSFT", "1d", 1649601542, 1649601580);
+        var foo = await YahooV8Service.Instance.Query2FinanceYahooV8Search("MSFT");
+        var bar = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary("MSFT");
+    }
 }
