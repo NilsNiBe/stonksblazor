@@ -2,58 +2,58 @@
 @using StonksBlazor.Models
 
 <MudTable Items="@UiShares" Style="margin-top: 20px" RowStyle="background-color: #cfe8fc">
-    <HeaderContent >
-        <MudTh></MudTh>
-        <MudTh>Aktie</MudTh>
-        <MudTh>Menge</MudTh>
-        <MudTh>Gesamtwert</MudTh>
-        <MudTh>(gesamt) G/V</MudTh>
-        <MudTh>Aktienwert</MudTh>
-        <MudTh >(aktuell) G/V</MudTh>
-    </HeaderContent>
-    <RowTemplate >   
-        <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" 
-                @onclick="@(() => OnExpandClicked(context.Share.Symbol))"/>
-        </MudTd>
-        <MudTd>@context.Share.Symbol</MudTd>
-        <MudTd>@context.Share.Purchases.Sum(x => x.Amount)</MudTd>
-        <MudTd></MudTd>
-        <MudTd></MudTd>
-        <MudTd></MudTd>
-        <MudTd></MudTd>       
-    </RowTemplate>
-    <ChildRowContent>
-        @if (context.ShowPurchase)
-        {
-            <MudTr>
-                <td colspan="7">
-                    <SharesTableRow Purchases="context.Share.Purchases"/>
-                </td>
-            </MudTr>
-        }
-    </ChildRowContent>
+  <HeaderContent>
+    <MudTh></MudTh>
+    <MudTh>Aktie</MudTh>
+    <MudTh>Menge</MudTh>
+    <MudTh>Gesamtwert</MudTh>
+    <MudTh>(gesamt) G/V</MudTh>
+    <MudTh>Aktienwert</MudTh>
+    <MudTh>(aktuell) G/V</MudTh>
+  </HeaderContent>
+  <RowTemplate>
+    <MudTd>
+      <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown"
+                     @onclick="@(() => OnExpandClicked(context.Share.Symbol))" />
+    </MudTd>
+    <MudTd>@context.Share.Symbol</MudTd>
+    <MudTd>@context.Share.Purchases.Sum(x => x.Amount)</MudTd>
+    <MudTd></MudTd>
+    <MudTd></MudTd>
+    <MudTd></MudTd>
+    <MudTd></MudTd>
+  </RowTemplate>
+  <ChildRowContent>
+    @if (context.ShowPurchase)
+    {
+      <MudTr>
+        <td colspan="7">
+          <SharesTableRow Purchases="context.Share.Purchases" />
+        </td>
+      </MudTr>
+    }
+  </ChildRowContent>
 </MudTable>
 
 @code {
-    [Parameter]
-    public List<Share>? Shares { get; set; }
+  [Parameter]
+  public List<Share>? Shares { get; set; }
 
-    private record UiShare(Share Share, bool ShowPurchase);
+  private record UiShare(Share Share, bool ShowPurchase);
 
-    private List<UiShare>? UiShares => Shares?.Select(x => new UiShare(x, false))?.ToList();
+  private List<UiShare>? UiShares => Shares?.Select(x => new UiShare(x, false))?.ToList();
 
-    //new List<UiShare> { 
-    //    new UiShare(new Share("msft", new List<Purchase> { 
-    //        new Purchase("sdf", 1650191240, 1)}, 44), true),
-    //    new UiShare(new Share("google", new List<Purchase> { 
-    //        new Purchase("qwer", 1650191240, 1)}, 44), true),
-    //};   
+  //new List<UiShare> {
+  //    new UiShare(new Share("msft", new List<Purchase> {
+  //        new Purchase("sdf", 1650191240, 1)}, 44), true),
+  //    new UiShare(new Share("google", new List<Purchase> {
+  //        new Purchase("qwer", 1650191240, 1)}, 44), true),
+  //};
 
-    private void OnExpandClicked(string symbol)
-    {
-        var share = UiShares.First(x => x.Share.Symbol == symbol);
-        var index = UiShares.IndexOf(share);
-        UiShares[index] = share with {ShowPurchase = !share.ShowPurchase };
-    }
+  private void OnExpandClicked(string symbol)
+  {
+    var share = UiShares.First(x => x.Share.Symbol == symbol);
+    var index = UiShares.IndexOf(share);
+    UiShares[index] = share with { ShowPurchase = !share.ShowPurchase };
+  }
 }

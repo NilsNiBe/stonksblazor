@@ -4,56 +4,56 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStore
 
 <section style="margin: 20px">
-    <div Style="background-color: #87cefa; display: center; padding: 20px; border-radius: 5px" >        
-        <SharesInput ReturnShare="AddShare" />        
-        <SharesTable />        
-    </div>
+  <div Style="background-color: #87cefa; display: center; padding: 20px; border-radius: 5px">
+    <SharesInput ReturnShare="AddShare" />
+    <SharesTable />
+  </div>
 </section>
 
 @code {
-    private List<Share>? ShareList;
+  private List<Share>? ShareList;
 
-    private long GetMinTimestamp(Share share) => share.Purchases.Min(x => x.Timestamp);
+  private long GetMinTimestamp(Share share) => share.Purchases.Min(x => x.Timestamp);
 
-    private async Task AddPurchase(DateTimeOffset date, string symbol, int amount)
+  private async Task AddPurchase(DateTimeOffset date, string symbol, int amount)
+  {
+    var foundShare = ShareList?.FirstOrDefault(x => x.Symbol == symbol);
+    if (foundShare != null)
     {
-        var foundShare = ShareList?.FirstOrDefault(x => x.Symbol == symbol);
-        if (foundShare != null)
-        {
-            var minTimestamp = GetMinTimestamp(foundShare);
-            if (minTimestamp > date.ToUnixTimeMilliseconds())
-            {
-                foundShare = foundShare with
-                    {
-                      ChartResult = await SharesService.Instance.GetChartResultFromApi(
-                        foundShare.Symbol, date.ToUnixTimeMilliseconds())
-                    };
-            }
-        }
+      var minTimestamp = GetMinTimestamp(foundShare);
+      if (minTimestamp > date.ToUnixTimeMilliseconds())
+      {
+        foundShare = foundShare with
+          {
+            ChartResult = await SharesService.Instance.GetChartResultFromApi(
+                  foundShare.Symbol, date.ToUnixTimeMilliseconds())
+          };
+      }
     }
+  }
 
-    private async Task AddShare(DateTimeOffset date, string symbol, int amount, double price)
+  private async Task AddShare(DateTimeOffset date, string symbol, int amount, double price)
+  {
+    var res = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary(symbol);
+    if (res.QuoteSummary.Result.Any())
     {
-        var res = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary(symbol);
-        if (res.QuoteSummary.Result.Any() )
-        {
-            
-        }
-    }    
 
-    protected override async Task OnInitializedAsync()
-    {
-        var shares = await localStore.GetItemAsync<List<Share>>("stonksblazor");
-
-        // await localStore.SetItemAsync<List<Share>>("stonksblazor", ShareList);
-        var shareTasks =  shares.Select(x =>
-          Task.Run(() => SharesService.Instance.GetChartResultFromApi(x.Symbol, GetMinTimestamp(x))));
-        Task.WaitAll(shareTasks.ToArray());
-        ShareList = shareTasks.Select((x, i) => shares[i] with {ChartResult = x.Result }).ToList();
-
-
-        //var res = await YahooV8Service.Instance.Query2FinanceYahooV8Chart("MSFT", "1d", 1649601542, 1649601580);
-        //var foo = await YahooV8Service.Instance.Query2FinanceYahooV8Search("MSFT");
-        //var bar = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary("MSFT");
     }
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    var shares = await localStore.GetItemAsync<List<Share>>("stonksblazor");
+
+    // await localStore.SetItemAsync<List<Share>>("stonksblazor", ShareList);
+    var shareTasks = shares.Select(x =>
+     Task.Run(() => SharesService.Instance.GetChartResultFromApi(x.Symbol, GetMinTimestamp(x))));
+    Task.WaitAll(shareTasks.ToArray());
+    ShareList = shareTasks.Select((x, i) => shares[i] with { ChartResult = x.Result }).ToList();
+
+
+    //var res = await YahooV8Service.Instance.Query2FinanceYahooV8Chart("MSFT", "1d", 1649601542, 1649601580);
+    //var foo = await YahooV8Service.Instance.Query2FinanceYahooV8Search("MSFT");
+    //var bar = await YahooV8Service.Instance.Query2FinanceYahooV8QuoteSummary("MSFT");
+  }
 }
