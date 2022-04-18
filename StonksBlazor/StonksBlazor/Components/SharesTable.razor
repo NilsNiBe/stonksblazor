@@ -1,0 +1,37 @@
+﻿@using MudBlazor;
+@using StonksBlazor.Models
+
+<MudTable Items="@Shares" Style="margin-top: 20px" RowStyle="background-color: #cfe8fc">
+    <HeaderContent >
+        <MudTh></MudTh>
+        <MudTh>Aktie</MudTh>
+        <MudTh>Menge</MudTh>
+        <MudTh>Gesamtwert</MudTh>
+        <MudTh>(gesamt) G/V</MudTh>
+        <MudTh>Aktienwert</MudTh>
+        <MudTh >(aktuell) G/V</MudTh>
+    </HeaderContent>
+    <RowTemplate >
+        <MudTr>
+        <MudIconButton Icon="@Icons.Material.Filled.KeyboardArrowDown" @onclick="OnExpandClicked" ></MudIconButton>
+        <MudTd  DataLabel="Aktie">@context.Symbol</MudTd>
+        <MudTd DataLabel="Menge">@context.Purchases.Sum(x => x.Amount)</MudTd>
+        <MudTd DataLabel="Menge"></MudTd>
+        <MudTd DataLabel="Menge"></MudTd>
+        <MudTd DataLabel="Menge"></MudTd>
+        <MudTd DataLabel="Menge"></MudTd> 
+        </MudTr>
+    </RowTemplate>
+</MudTable>
+
+// https://mudblazor.com/components/table#table-with-related-data
+
+<SharesTableRow/>
+@code {
+    private List<Share> Shares = new List<Share> { new Share("msft", new List<Purchase> { new Purchase("sdf", 1650191240, 1)}, 44) };
+
+    private void OnExpandClicked()
+    {
+        
+    }
+}

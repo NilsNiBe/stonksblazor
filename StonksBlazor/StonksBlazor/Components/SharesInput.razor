@@ -1,0 +1,32 @@
+﻿@using MudBlazor
+
+<MudGrid style="background-color: white; border-radius: 5px; box-shadow: 1px 1px 1px gray; align-items: center" >
+    <MudItem lg="3" md="3" sm="4" xs="12">
+        <MudDatePicker DateFormat="dd.MM.yyy HH:mm" Label="Kaufzeitpunkt" InputVariant="Variant.Outlined" @bind-Date="date"/>
+    </MudItem>
+    <MudItem lg="4" md="4" sm="4" xs="12">
+        <SharesSeachInput/>
+    </MudItem>
+    <MudItem lg="2" md="2" sm="4" xs="12">
+        <MudTextField Variant="Variant.Outlined" Label="Preis" @bind-Value="selectedPrice" InputType="InputType.Number"/>
+    </MudItem>
+    <MudItem lg="2" md="2" sm="4" xs="12">
+        <MudTextField Variant="Variant.Outlined" Label="Anzahl" @bind-Value="selectedAmount" InputType="InputType.Number"/>
+    </MudItem>
+    <MudItem lg="1" md="1" sm="8" xs="12">
+        <MudFab Color="Color.Primary" Size="Size.Medium" Icon="@Icons.Material.Filled.Add" @onclick="OnAddClicked"/>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    DateTime? date = DateTime.Today;
+    double? selectedPrice = null;
+    int selectedAmount = 1;
+
+
+    private void OnAddClicked()
+    {
+        Console.WriteLine("sdfasdf");
+    }
+}
