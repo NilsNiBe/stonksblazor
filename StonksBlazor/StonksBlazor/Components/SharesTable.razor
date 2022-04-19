@@ -41,14 +41,16 @@
 
   private record UiShare(Share Share, bool ShowPurchase);
 
-  private List<UiShare>? UiShares => Shares?.Select(x => new UiShare(x, false))?.ToList();
+  private List<UiShare> UiShares = new List<UiShare>();
 
-  //new List<UiShare> {
-  //    new UiShare(new Share("msft", new List<Purchase> {
-  //        new Purchase("sdf", 1650191240, 1)}, 44), true),
-  //    new UiShare(new Share("google", new List<Purchase> {
-  //        new Purchase("qwer", 1650191240, 1)}, 44), true),
-  //};
+  protected override void OnParametersSet()
+  {
+    var newUiShare = Shares?.GroupJoin<Share, UiShare, string, UiShare>(
+      UiShares, share => share.Symbol, uiShare => uiShare.Share.Symbol,
+      (x, y) => new UiShare(x, y.Any() ? y.First().ShowPurchase : false)).ToList();
+    UiShares = newUiShare ?? new List<UiShare>();
+    base.OnParametersSet();
+  }
 
   private void OnExpandClicked(string symbol)
   {

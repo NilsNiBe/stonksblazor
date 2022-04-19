@@ -1,7 +1,7 @@
 ﻿@using MudBlazor
 @using StonksBlazor.Models
 
-<MudTable Items="@Purchases" Style="margin-top: 20px" OnRowClick="OnDeleteClicked" T="Purchase">
+<MudTable Items="@Purchases" Style="margin-top: 20px" T="Purchase">
   <HeaderContent>
     <MudTh>Datum</MudTh>
     <MudTh>Menge</MudTh>
@@ -11,13 +11,13 @@
     <MudTh />
   </HeaderContent>
   <RowTemplate>
-    <MudTd>@context.Id</MudTd>
+    <MudTd>@(DateTimeOffset.FromUnixTimeSeconds(@context.Timestamp).LocalDateTime)</MudTd>
     <MudTd>@context.Amount</MudTd>
     <MudTd></MudTd>
     <MudTd></MudTd>
     <MudTd></MudTd>
     <MudTd>
-      <MudIconButton Icon="@Icons.Material.Filled.Delete" />
+      <MudIconButton Icon="@Icons.Material.Filled.Delete" @onclick="@(() => OnDeleteClicked(@context))" />
     </MudTd>
   </RowTemplate>
 </MudTable>
@@ -27,8 +27,11 @@
   [Parameter]
   public List<Purchase>? Purchases { get; set; }
 
-  private void OnDeleteClicked(TableRowClickEventArgs<Purchase> tableRowClickEventArgs)
+  private void OnDeleteClicked(Purchase purchase)
   {
-
+      var foo = purchase.Timestamp;
+      var bar = new DateTime(foo);
   }
+
+ 
 }

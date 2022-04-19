@@ -1,24 +1,30 @@
 ﻿@using MudBlazor
 @using StonksBlazor.Services
+@using System.Globalization
 
 <MudGrid style="background-color: white; border-radius: 5px; box-shadow: 1px 1px 1px gray; align-items: center">
   <MudItem lg="2" md="2" sm="3" xs="12">
-    <MudDatePicker DateFormat="dd.MM.yyy" Label="Kauftag" InputVariant="Variant.Outlined" Date="selectedDate" DateChanged="OnDateChanged" />
+    <MudDatePicker DateFormat="dd.MM.yyy" Label="Kauftag" 
+        InputVariant="Variant.Outlined" Date="selectedDate" DateChanged="OnDateChanged" />
   </MudItem>
   <MudItem lg="2" md="2" sm="3" xs="12">
-    <MudTimePicker TimeFormat="HH:mm" Label="Kaufzeit" InputVariant="Variant.Outlined" @bind-Time="selectedTime" />
+    <MudTimePicker TimeFormat="HH:mm" Label="Kaufzeit" 
+        InputVariant="Variant.Outlined" @bind-Time="selectedTime" />
   </MudItem>
   <MudItem lg="3" md="3" sm="4" xs="12">
     <SharesSeachInput OnSymbolChanged="OnSymbolChanged" />
   </MudItem>
   <MudItem lg="2" md="2" sm="2" xs="12">
-    <MudTextField Variant="Variant.Outlined" Label="Preis" Value="selectedPrice" InputType="InputType.Number" />
+    <MudNumericField Variant="Variant.Outlined" Label="Preis"
+        @bind-Value="selectedPrice"  />
   </MudItem>
   <MudItem lg="1" md="1" sm="2" xs="12">
-    <MudTextField Variant="Variant.Outlined" Label="Anzahl" @bind-Value="selectedAmount" InputType="InputType.Number" />
+    <MudNumericField Variant="Variant.Outlined" Label="Anzahl" 
+        @bind-Value="selectedAmount"  />
   </MudItem>
   <MudItem lg="1" md="1" sm="8" xs="12">
-    <MudFab Color="Color.Primary" Size="Size.Medium" Icon="@Icons.Material.Filled.Add" @onclick="OnAddClicked" />
+    <MudFab Color="Color.Primary" Size="Size.Medium" 
+        Icon="@Icons.Material.Filled.Add" @onclick="OnAddClicked" />
   </MudItem>
 </MudGrid>
 
@@ -29,8 +35,8 @@
 
   DateTime? selectedDate = DateTime.Today;
   TimeSpan? selectedTime = new TimeSpan(12, 00, 00);
-  string? selectedSymbol = null;
-  double? selectedPrice = null;
+  string? selectedSymbol;
+  double? selectedPrice;
   int selectedAmount = 1;
 
   private DateTimeOffset GetCombinedDate(DateTime date, TimeSpan timespan) =>  new DateTimeOffset(date
@@ -43,12 +49,12 @@
       selectedDate = date.Value;
       await SetSelectedShare(selectedSymbol, new DateTimeOffset(date.Value));
     }
-    
+
   }
 
   private async void OnSymbolChanged(string symbol)
   {
-    if (selectedDate.HasValue && selectedTime.HasValue)
+    if (!string.IsNullOrWhiteSpace(symbol) && selectedDate.HasValue && selectedTime.HasValue)
     {
       await SetSelectedShare(symbol, GetCombinedDate(selectedDate.Value, selectedTime.Value));
     }
@@ -77,7 +83,7 @@
           selectedPrice = Math.Round(quotes[0].Close.Last() * 100) / 100;
         }
       }
-
+      StateHasChanged();
     }
   }
 
@@ -86,7 +92,8 @@
     if (selectedDate.HasValue
         && selectedTime.HasValue
         && !string.IsNullOrWhiteSpace(selectedSymbol)
-        && selectedPrice.HasValue
+        && selectedPrice != null 
+        && selectedPrice > 0
         && selectedAmount > 0
         && ReturnShare != null)
     {

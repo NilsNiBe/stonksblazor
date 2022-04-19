@@ -34,13 +34,10 @@
     {
       ShareList?.Add(new Share(symbol, 
         new List<Purchase> { new Purchase(Guid.NewGuid().ToString(), date.ToUnixTimeSeconds(), amount) },
-        await SharesService.Instance.GetChartResultFromApi(symbol, date.ToUnixTimeSeconds())));
+        await SharesService.Instance.GetChartResultFromApi(symbol, date.ToUnixTimeSeconds())));      
     }
-    if (ShareList != null)
-    {
-      await localStore.SetItemAsync<List<Share>>("stonksblazor", ShareList);
-    }
-
+    ShareList = new List<Share>(ShareList ?? new List<Share>());   
+    await localStore.SetItemAsync<List<Share>>("stonksblazor", ShareList);   
   }
 
   private async void AddShare(DateTimeOffset date, string symbol, int amount, double price)
@@ -58,8 +55,8 @@
 
     var shareTasks = shares.Select(x =>
      Task.Run(() => SharesService.Instance.GetChartResultFromApi(x.Symbol, GetMinTimestamp(x))));
-    Task.WaitAll(shareTasks.ToArray());
-    ShareList = shareTasks.Select((x, i) => shares[i] with { ChartResult = x.Result }).ToList() 
+    var res = await Task.WhenAll(shareTasks.ToArray());
+    ShareList = res?.Select((x, i) => shares[i] with { ChartResult = x }).ToList() 
         ?? new List<Share>();
   }
 }
